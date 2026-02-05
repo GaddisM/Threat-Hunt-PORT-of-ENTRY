@@ -1,2 +1,2 @@
-# Threat-Hunt-Azuki-Series--PORT-of-ENTRY
+# Azuki-Series-PORT-of-ENTRY
 PORT of ENTRY
