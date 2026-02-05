@@ -1,87 +1,76 @@
-# Azuki-Series-PORT-of-ENTRY
+# Threat Hunting Case Study  
+## Insider-Enabled Data Exfiltration via Living-off-the-Land Techniques  
+**Platform:** Microsoft Defender for Endpoint  
+**Focus:** End-to-End Threat Hunting using KQL  
+**MITRE ATT&CK–Aligned Investigation**
 
-🕵️ Threat Hunting Investigation Report
+---
 
-Incident: Confidential Pricing Data Exposure
+## 1. Executive Summary
 
-Company: Azuki Import/Export Trading Co.
+Azuki Import/Export Trading Co. identified a potential data breach after a competitor undercut a six-year shipping contract by **exactly 3%**, strongly indicating exposure of confidential pricing data. Subsequent intelligence revealed that internal supplier contracts and pricing documents were advertised on underground forums.
 
-Date Range Investigated: 2025-11-19 to 2025-11-20
+A full threat-hunting investigation was conducted using Microsoft Defender for Endpoint telemetry to identify the **initial access vector, attacker behavior, compromised assets, and business impact**.
 
-Telemetry Source: Microsoft Defender for Endpoint (MDE)
+---
 
-------
+## 2. Environment Context
 
-📌 Executive Summary
+| Category | Details |
+|-------|--------|
+| Company | Azuki Import/Export Trading Co. |
+| Industry | Shipping Logistics (Japan / SE Asia) |
+| Employees | 23 |
+| Primary Asset | AZUKI-SL (IT Administrator Workstation) |
+| Telemetry | Microsoft Defender for Endpoint |
+| Incident Severity | High |
+| Likely Incident Type | Data Exfiltration / Insider-Enabled Breach |
 
-Azuki Import/Export Trading Co. identified indicators of a potential security
-breach after a competitor undercut a 6-year shipping contract 
-by exactly 3%, strongly suggesting access to confidential pricing data. 
-This suspicion was further validated when supplier contracts 
-and pricing documentsappeared on underground forums, 
-indicating unauthorized data exfiltration.
+---
+
+## 3. Investigation Methodology
+
+The investigation followed a structured threat-hunting lifecycle aligned with the **MITRE ATT&CK framework**:
+
+1. Initial Access  
+2. Execution  
+3. Discovery  
+4. Defense Evasion  
+5. Persistence  
+6. Command & Control  
+7. Credential Access  
+8. Collection  
+9. Exfiltration  
+10. Anti-Forensics  
+11. Lateral Movement  
+12. Impact  
+
+---
 
 
-A structured threat hunting investigation was conducted
-using Microsoft Defender for Endpoint telemetry to
-identify initial access, attacker behavior, 
-persistence mechanisms, data exfiltration, and impact.
+---
 
------
+## 5. Initial Access — Suspicious Process Execution
 
-🏢 Environment Context
+### Objective
+Identify malicious execution patterns associated with phishing or script-based compromise.
 
-Attribute	Details
+### Why This Query
+Office applications spawning PowerShell or CMD often indicate macro-based phishing or malicious document execution.
 
-Industry	Shipping & Logistics (Japan / SE Asia)
+### KQL Query
+```kql
+DeviceProcessEvents
+| where DeviceName == "azuki-sl"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where InitiatingProcessFileName in ("winword.exe","excel.exe","outlook.exe","powershell.exe","cmd.exe")
+| project Timestamp, AccountName, FileName, ProcessCommandLine, InitiatingProcessFileName
+| order by Timestamp asc
 
-Employees	23
 
-Primary Host	AZUKI-SL (IT Administrator Workstation)
 
-Security Tooling	Microsoft Defender for Endpoint
 
------
 
-🧠 Investigation Methodology
-
-This investigation followed a MITRE ATT&CK–aligned threat hunting lifecycle:
-
-Initial Access
-
-Credential Compromise
-
-Discovery
-
-Defense Evasion
-
-Persistence
-
-Command & Control
-
-Credential Access
-
-Collection
-
-Exfiltration
-
-Anti-Forensics
-
-Lateral Movement
-
-Impact
-
-Each phase includes:
-
-Objective
-
-Detection logic (KQL)
-
-Observed results
-
-Conclusion
-
--------
 
 1️⃣ Initial Access – Suspicious Process Execution
 🎯 Objective
@@ -275,57 +264,5 @@ Tool Used	mstsc.exe
 
 
 
-
-
-# Threat Hunting Case Study  
-## Insider-Enabled Data Exfiltration via Living-off-the-Land Techniques  
-**Platform:** Microsoft Defender for Endpoint  
-**Focus:** End-to-End Threat Hunting using KQL  
-**MITRE ATT&CK–Aligned Investigation**
-
----
-
-## 1. Executive Summary
-
-Azuki Import/Export Trading Co. identified a potential data breach after a competitor undercut a six-year shipping contract by **exactly 3%**, strongly indicating exposure of confidential pricing data. Subsequent intelligence revealed that internal supplier contracts and pricing documents were advertised on underground forums.
-
-A full threat-hunting investigation was conducted using Microsoft Defender for Endpoint telemetry to identify the **initial access vector, attacker behavior, compromised assets, and business impact**.
-
----
-
-## 2. Environment Context
-
-| Category | Details |
-|-------|--------|
-| Company | Azuki Import/Export Trading Co. |
-| Industry | Shipping Logistics (Japan / SE Asia) |
-| Employees | 23 |
-| Primary Asset | AZUKI-SL (IT Administrator Workstation) |
-| Telemetry | Microsoft Defender for Endpoint |
-| Incident Severity | High |
-| Likely Incident Type | Data Exfiltration / Insider-Enabled Breach |
-
----
-
-## 3. Investigation Methodology
-
-The investigation followed a structured threat-hunting lifecycle aligned with the **MITRE ATT&CK framework**:
-
-1. Initial Access  
-2. Execution  
-3. Discovery  
-4. Defense Evasion  
-5. Persistence  
-6. Command & Control  
-7. Credential Access  
-8. Collection  
-9. Exfiltration  
-10. Anti-Forensics  
-11. Lateral Movement  
-12. Impact  
-
----
-
-## 4. Attack Timeline (High-Level)
 
 
