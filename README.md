@@ -90,7 +90,6 @@ Identify how the attacker gained initial access to the environment.
 
 🔎 Detection Logic (KQL)
 
------
 
 DeviceProcessEvents
 | where DeviceName == "azuki-sl"
@@ -99,7 +98,6 @@ DeviceProcessEvents
 | project Timestamp, AccountName, FileName, ProcessCommandLine, InitiatingProcessFileName
 | order by Timestamp asc
 
-----
 
 🧪 Results
 
@@ -113,6 +111,7 @@ Command shells launching scripts
 
 The initial access vector is consistent with phishing-based macro execution, leading to PowerShell-based payload delivery.
 
+--------
 2️⃣ Initial Access – Remote Desktop Entry Point
 🎯 Objective
 
@@ -128,6 +127,8 @@ DeviceLogonEvents
 
 Remote IP: 88.97.178.12
 
+-------
+
 3️⃣ Compromised Account Identification
 DeviceLogonEvents
 | where LogonType == "RemoteInteractive"
@@ -138,6 +139,8 @@ DeviceLogonEvents
 🔎 Result
 
 Compromised Account: kenji.sato
+
+-------
 
 4️⃣ Discovery – Network Enumeration
 🎯 Objective
@@ -158,6 +161,8 @@ Command Used: arp -a
 
 The attacker enumerated network neighbors to identify lateral movement targets.
 
+---------
+
 5️⃣ Defense Evasion – Malware Staging Directory
 DeviceProcessEvents
 | where ProcessCommandLine has_any ("attrib +h","+s")
@@ -167,6 +172,8 @@ DeviceProcessEvents
 
 Primary Staging Directory:
 C:\ProgramData\WindowsCache
+
+-------
 
 6️⃣ Defense Evasion – Windows Defender Exclusions
 File Extension Exclusions
@@ -184,6 +191,8 @@ DeviceRegistryEvents
 Excluded Folder:
 C:\Users\KENJI~1.SAT\AppData\Local\Temp
 
+------
+
 7️⃣ Defense Evasion – Living Off the Land (LOLBins)
 DeviceProcessEvents
 | where ProcessCommandLine has_any ("http","https")
@@ -191,6 +200,8 @@ DeviceProcessEvents
 🔎 Result
 
 Abused Binary: certutil.exe
+
+-------
 
 8️⃣ Persistence – Scheduled Task Creation
 Task Name
@@ -204,6 +215,8 @@ Task Target
 
 Executable:
 C:\ProgramData\WindowsCache\svchost.exe
+
+--------
 
 9️⃣ Command & Control (C2)
 DeviceNetworkEvents
@@ -254,3 +267,79 @@ Backdoor Account: Support
 Indicator	Value
 Target IP	10.1.0.188
 Tool Used	mstsc.exe
+
+
+
+
+
+
+┌──────────────────────────────────────────────────────────────────────┐
+│                        ATTACK TIMELINE (UTC)                           │
+└──────────────────────────────────────────────────────────────────────┘
+
+[ 2025-11-19 ]
+
+│
+├─▶ Initial Access
+│    ├─ Phishing document opened (winword.exe)
+│    ├─ PowerShell launched with ExecutionPolicy Bypass
+│    └─ Remote RDP access from 88.97.178.12
+│       Account: kenji.sato
+│
+├─▶ Discovery
+│    ├─ Network enumeration using:
+│    │     arp -a
+│    └─ Identification of internal subnet hosts
+│
+├─▶ Defense Evasion
+│    ├─ Hidden malware staging directory created:
+│    │     C:\ProgramData\WindowsCache
+│    ├─ Windows Defender exclusions added:
+│    │     • 3 file extensions
+│    │     • Temp folder exclusion
+│    └─ LOLBin abuse:
+│          certutil.exe used to download payloads
+│
+├─▶ Persistence
+│    ├─ Scheduled task created:
+│    │     Name: "Windows Update Check"
+│    └─ Persistence target:
+│          C:\ProgramData\WindowsCache\svchost.exe
+│
+├─▶ Command & Control (C2)
+│    ├─ Outbound HTTPS connection established
+│    ├─ C2 Server: 78.141.196.6
+│    └─ Port: 443
+│
+├─▶ Credential Access
+│    ├─ Credential dumping tool deployed:
+│    │     Mm.exe
+│    └─ LSASS memory extraction:
+│          sekurlsa::logonpasswords
+│
+├─▶ Collection
+│    ├─ Sensitive data staged
+│    └─ Archive created:
+│          Export-data.zip
+│
+├─▶ Exfiltration
+│    ├─ Data exfiltrated over HTTPS
+│    └─ Cloud service abused:
+│          Discord
+│
+├─▶ Anti-Forensics
+│    ├─ Event logs cleared using wevtutil.exe
+│    └─ First log removed:
+│          Security
+│
+├─▶ Impact
+│    ├─ Backdoor administrator account created:
+│    │     Username: Support
+│    └─ Environment left with persistent access
+│
+└─▶ Lateral Movement
+     ├─ Target system identified:
+     │     10.1.0.188
+     └─ Remote access tool used:
+           mstsc.exe
+
