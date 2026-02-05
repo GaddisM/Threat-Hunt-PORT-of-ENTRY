@@ -64,12 +64,15 @@ Conclusion
 Identify how the attacker gained initial access to the environment.
 
 🔎 Detection Logic (KQL)
+
+-----
 DeviceProcessEvents
 | where DeviceName == "azuki-sl"
 | where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
 | where InitiatingProcessFileName in ("winword.exe","excel.exe","outlook.exe","powershell.exe","cmd.exe")
 | project Timestamp, AccountName, FileName, ProcessCommandLine, InitiatingProcessFileName
 | order by Timestamp asc
+----
 
 🧪 Results
 
