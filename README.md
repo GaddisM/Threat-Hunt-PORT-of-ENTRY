@@ -1,3 +1,5 @@
+<img width="1536" height="1024" alt="ChatGPT Image Feb 8, 2026, 04_47_01 PM" src="https://github.com/user-attachments/assets/73c27e50-9c14-4cdd-bd29-2a096e317786" />
+
 # Threat Hunting Case Study  
 ## Insider-Enabled Data Exfiltration via Living-off-the-Land Techniques  
 **Platform:** Microsoft Defender for Endpoint  
