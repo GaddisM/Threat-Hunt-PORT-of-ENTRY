@@ -166,6 +166,193 @@ DeviceProcessEvents
 C:\ProgramData\WindowsCache
 
 
+---
+
+### Flag 5 – File Extension Exclusions
+
+**Question:** Number of extensions excluded
+
+```kql
+DeviceRegistryEvents
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where RegistryKey has_any ("Exclusions", "Extensions")
+| project Timestamp, DeviceName, RegistryValueName, RegistryKey
+```
+
+**Answer:** `3`
+
+---
+
+### Flag 6 – Folder Path Exclusion
+
+```kql
+DeviceRegistryEvents
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where RegistryKey contains "Exclusions"
+| where RegistryKey contains "Paths"
+| project Timestamp, RegistryValueName
+```
+
+**Answer:** `C:\Users\KENJI~1.SAT\AppData\Local\Temp`
+
+---
+
+### Flag 7 – Download Utility Abuse
+
+```kql
+DeviceProcessEvents
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where ProcessCommandLine has_any ("http", "https")
+| project Timestamp, FileName, ProcessCommandLine
+```
+
+**Answer:** `certutil.exe`
+
+---
+
+## Phase 5 – Persistence
+
+### Flag 8 – Scheduled Task Name
+
+```kql
+DeviceProcessEvents
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where ProcessCommandLine contains "schtasks.exe"
+| project Timestamp, ProcessCommandLine
+```
+
+**Answer:** `Windows Update Check`
+
+---
+
+### Flag 9 – Scheduled Task Target
+
+**Answer:** `C:\ProgramData\WindowsCache\svchost.exe`
+
+---
+
+## Phase 6 – Command & Control
+
+### Flag 10 – C2 Server IP
+
+```kql
+DeviceNetworkEvents
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where InitiatingProcessAccountName contains "kenji.sato"
+| project Timestamp, RemoteIP, RemotePort
+```
+
+**Answer:** `78.141.196.6`
+
+### Flag 11 – C2 Port
+
+**Answer:** `443`
+
+---
+
+## Phase 7 – Credential Access
+
+### Flag 12 – Credential Dumping Tool
+
+```kql
+DeviceFileEvents
+| where FolderPath contains "WindowsCache"
+| where FileName endswith ".exe"
+```
+
+**Answer:** `Mm.exe`
+
+---
+
+### Flag 13 – Memory Extraction Module
+
+```kql
+DeviceProcessEvents
+| where ProcessCommandLine has "sekurlsa::logonpasswords"
+```
+
+**Answer:** `sekurlsa::logonpasswords`
+
+---
+
+## Phase 8 – Collection & Exfiltration
+
+### Flag 14 – Data Archive
+
+```kql
+DeviceFileEvents
+| where FileName endswith ".zip"
+```
+
+**Answer:** `Export-data.zip`
+
+---
+
+### Flag 15 – Exfiltration Channel
+
+```kql
+DeviceNetworkEvents
+| where RemoteUrl contains "discord"
+```
+
+**Answer:** `Discord`
+
+---
+
+## Phase 9 – Anti-Forensics & Impact
+
+### Flag 16 – Log Tampering
+
+```kql
+DeviceProcessEvents
+| where FileName == "wevtutil.exe"
+```
+
+**Answer:** `Security`
+
+---
+
+### Flag 17 – Persistence Account
+
+```kql
+DeviceProcessEvents
+| where ProcessCommandLine has "/add"
+```
+
+**Answer:** `Support`
+
+---
+
+### Flag 18 – Malicious Script
+
+```kql
+DeviceFileEvents
+| where FileName endswith ".ps1"
+```
+
+**Answer:** `Wupdate.ps1`
+
+---
+
+### Flag 19 – Lateral Movement Target
+
+**Answer:** `10.1.0.188`
+
+---
+
+### Flag 20 – Lateral Movement Tool
+
+**Answer:** `mstsc.exe`
+
+---
+
+
+
 
 
 
