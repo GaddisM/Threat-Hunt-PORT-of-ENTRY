@@ -190,12 +190,14 @@ DeviceRegistryEvents
 ### Flag 6 – Folder Path Exclusion
 
 ```kql
+
 DeviceRegistryEvents
 | where DeviceName contains "azuki"
 | where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
 | where RegistryKey contains "Exclusions"
 | where RegistryKey contains "Paths"
-| project Timestamp, RegistryValueName
+| project Timestamp, DeviceName, ActionType, RegistryValueName, RegistryKey
+
 ```
 <img width="1362" height="214" alt="Screenshot 2026-02-03 at 12 40 39" src="https://github.com/user-attachments/assets/5378b5ce-f6db-4c25-ba4c-5ceb5d5df60f" />
 
@@ -206,11 +208,13 @@ DeviceRegistryEvents
 ### Flag 7 – Download Utility Abuse
 
 ```kql
+
 DeviceProcessEvents
 | where DeviceName contains "azuki"
 | where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
 | where ProcessCommandLine has_any ("http", "https")
-| project Timestamp, FileName, ProcessCommandLine
+| project Timestamp, FileName, ProcessCommandLine, DeviceName
+
 ```
 <img width="1581" height="470" alt="Screenshot 2026-02-03 at 13 04 28" src="https://github.com/user-attachments/assets/f35721e0-0ae8-4abc-9b62-158f9a521229" />
 
@@ -223,11 +227,13 @@ DeviceProcessEvents
 ### Flag 8 – Scheduled Task Name
 
 ```kql
+
 DeviceProcessEvents
 | where DeviceName contains "azuki"
 | where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
-| where ProcessCommandLine contains "schtasks.exe"
-| project Timestamp, ProcessCommandLine
+| where ProcessCommandLine has_any ("schtasks.exe")
+| project Timestamp, FileName, ProcessCommandLine, DeviceName
+
 ```
 <img width="1276" height="296" alt="Screenshot 2026-02-03 at 13 14 40" src="https://github.com/user-attachments/assets/7b79a510-26de-4cd8-b865-27e13c13b058" />
 
@@ -237,8 +243,16 @@ DeviceProcessEvents
 
 ### Flag 9 – Scheduled Task Target
 
-**Answer:** `C:\ProgramData\WindowsCache\svchost.exe`
+```kql
+DeviceProcessEvents
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where ProcessCommandLine has_any ("schtasks.exe")
+| project Timestamp, FileName, ProcessCommandLine, DeviceName
+```
 <img width="1276" height="296" alt="Screenshot 2026-02-03 at 13 18 09" src="https://github.com/user-attachments/assets/8dbbc7c7-988d-4b51-9e06-e363f3dae5ff" />
+
+**Answer:** `C:\ProgramData\WindowsCache\svchost.exe`
 
 ---
 
@@ -247,11 +261,15 @@ DeviceProcessEvents
 ### Flag 10 – C2 Server IP
 
 ```kql
+
 DeviceNetworkEvents
 | where DeviceName contains "azuki"
 | where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
 | where InitiatingProcessAccountName contains "kenji.sato"
-| project Timestamp, RemoteIP, RemotePort
+| where InitiatingProcessCommandLine has_any ("svchost.exe", "powershell.exe")
+| project Timestamp, InitiatingProcessAccountDomain, InitiatingProcessCommandLine, RemoteIP, RemotePort
+
+
 ```
 <img width="931" height="325" alt="Screenshot 2026-02-03 at 13 44 28" src="https://github.com/user-attachments/assets/12a00ee2-0b8f-40e0-8c65-ccf42f8670b8" />
 
@@ -269,8 +287,12 @@ DeviceNetworkEvents
 
 ```kql
 DeviceFileEvents
-| where FolderPath contains "WindowsCache"
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where FolderPath contains "WindowsCache" 
 | where FileName endswith ".exe"
+| project Timestamp, FileName, FolderPath, InitiatingProcessFileName
+
 ```
 <img width="961" height="291" alt="Screenshot 2026-02-03 at 14 10 13" src="https://github.com/user-attachments/assets/83c721fa-b545-4331-a663-c2e9729f6eb4" />
 
@@ -282,7 +304,12 @@ DeviceFileEvents
 
 ```kql
 DeviceProcessEvents
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
 | where ProcessCommandLine has "sekurlsa::logonpasswords"
+| project Timestamp, AccountDomain, FileName, FolderPath, ProcessCommandLine, ProcessVersionInfoProductName
+
+
 ```
 <img width="1435" height="318" alt="Screenshot 2026-02-03 at 14 25 33" src="https://github.com/user-attachments/assets/b21bb8bc-efce-4e81-ba54-8c1c75f1fbc8" />
 
@@ -296,7 +323,12 @@ DeviceProcessEvents
 
 ```kql
 DeviceFileEvents
-| where FileName endswith ".zip"
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where FileName contains ".zip"
+| where InitiatingProcessAccountName contains "Kenji.sato"
+| project Timestamp, FileName, ActionType, FolderPath
+
 ```
 <img width="907" height="156" alt="Screenshot 2026-02-03 at 14 34 52" src="https://github.com/user-attachments/assets/00bcd4cb-5c7b-4290-873d-b9a137fc1169" />
 
@@ -308,7 +340,12 @@ DeviceFileEvents
 
 ```kql
 DeviceNetworkEvents
-| where RemoteUrl contains "discord"
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where InitiatingProcessAccountName contains "kenji.sato"
+| where InitiatingProcessCommandLine contains @"C:\ProgramData\WindowsCache"
+| project InitiatingProcessAccountName, InitiatingProcessCommandLine, InitiatingProcessFileName, RemoteIP, RemotePort, RemoteUrl, Protocol
+
 ```
 <img width="1551" height="277" alt="Screenshot 2026-02-03 at 14 54 50" src="https://github.com/user-attachments/assets/08a3bd9f-159d-4181-8c51-7356cd0cd4ad" />
 
@@ -322,7 +359,11 @@ DeviceNetworkEvents
 
 ```kql
 DeviceProcessEvents
-| where FileName == "wevtutil.exe"
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where  FileName  has_any ("wevtutil.exe")
+| project Timestamp, FileName, ProcessCommandLine
+
 ```
 <img width="1551" height="524" alt="Screenshot 2026-02-03 at 16 20 35" src="https://github.com/user-attachments/assets/2dbb6551-0ec8-4911-a4ff-74b091b2b4ff" />
 
@@ -334,7 +375,11 @@ DeviceProcessEvents
 
 ```kql
 DeviceProcessEvents
-| where ProcessCommandLine has "/add"
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where ProcessCommandLine has_any ("/add")
+| project Timestamp, DeviceName, FileName, ProcessCommandLine
+
 ```
 <img width="937" height="236" alt="Screenshot 2026-02-03 at 16 33 56" src="https://github.com/user-attachments/assets/c71c760e-29d7-413b-aea3-952d22291de9" />
 
@@ -346,7 +391,13 @@ DeviceProcessEvents
 
 ```kql
 DeviceFileEvents
-| where FileName endswith ".ps1"
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where InitiatingProcessAccountName contains "kenji.sato"
+| where FileName endswith (".ps1")
+| where FolderPath contains "temp"
+| project Timestamp, ActionType, FileName, FolderPath
+
 ```
 <img width="1171" height="445" alt="Screenshot 2026-02-03 at 16 57 29" src="https://github.com/user-attachments/assets/8fc332db-eaff-4e70-8cfc-7a45c9a105d6" />
 
@@ -356,16 +407,34 @@ DeviceFileEvents
 
 ### Flag 19 – Lateral Movement Target
 
-**Answer:** `10.1.0.188`
+```kql
+DeviceNetworkEvents
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where InitiatingProcessAccountName contains "kenji.sato"
+| where InitiatingProcessFileName has_any ("mstsc"," cmdkey")
+| project RemoteIP, RemotePort, InitiatingProcessFileName
+
+```
+
 <img width="814" height="182" alt="Screenshot 2026-02-03 at 17 24 42" src="https://github.com/user-attachments/assets/2052758d-6a60-48b4-a36a-055f2e2e33ec" />
 
+**Answer:** `10.1.0.188`
 ---
 
 ### Flag 20 – Lateral Movement Tool
 
-**Answer:** `mstsc.exe`
+```kql
+DeviceProcessEvents
+| where DeviceName contains "azuki"
+| where Timestamp between (datetime(2025-11-19) .. datetime(2025-11-20))
+| where ProcessCommandLine contains "10.1.0.188"
+| project Timestamp, DeviceName, FileName, ProcessCommandLine
+
+```
 <img width="1004" height="182" alt="Screenshot 2026-02-03 at 17 23 20" src="https://github.com/user-attachments/assets/ba7d9f12-c0dc-40af-b581-8f49a978148e" />
 
+**Answer:** `mstsc.exe`
 ---
 
 
